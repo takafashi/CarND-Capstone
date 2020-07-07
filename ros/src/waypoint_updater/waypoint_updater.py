@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+from std_msgs.msg import Int32
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 
@@ -35,21 +36,22 @@ class WaypointUpdater(object):
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
+        rospy.Subscriber('/traffic_waypoints', Int32, self.traffic_cb)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # Add other member variables you need below
         self.pose = None
-        self.base_waypoints = None
+        self.stopline_wp_idx = -1
+        self.base_lane = None
         self.waypoints_2d = None
         self.waypoint_tree = None
-
         self.loop()
 
     def loop(self):
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
-            if self.pose and self.base_waypoints and self.waypoint_tree:
+            if self.pose and self.base_lane and self.waypoint_tree:
                 # Get closest waypoint
                 closest_waypoint_idx = self.get_closest_waypoint_idx()
                 self.publis_waypoints(closest_waypoint_idx)
@@ -78,22 +80,28 @@ class WaypointUpdater(object):
 
     def publis_waypoints(self, closest_idx):
         lane = Lane()
-        lane.header = self.base_waypoints.header
-        lane.waypoints = self.base_waypoints.waypoints[closest_idx:closest_idx + LOOKAHEAD_WPS]
+        lane.waypoints = self.base_lane.waypoints[closest_idx:closest_idx + LOOKAHEAD_WPS]
         self.final_waypoints_pub.publish(lane)
+        #rospy.loginfo("WaypointUpdater final_waypoints: %lf, %lf", lane.waypoints[0].pose.pose.position.x, lane.waypoints[0].pose.pose.position.y)
 
     def pose_cb(self, msg):
         self.pose = msg
+        #rospy.loginfo("WaypointUpdater pose_cb: %lf, %lf, %lf", self.pose.pose.position.x, self.pose.pose.position.y, self.pose.pose.position.z)
 
-    def waypoints_cb(self, waypoints):
-        self.base_waypoints = waypoints
+    def waypoints_cb(self, msg):
+        self.base_lane = msg
         if not self.waypoints_2d:
-            self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
+            self.waypoints_2d = [[waypoint.pose.pose.position.x, waypoint.pose.pose.position.y] for waypoint in msg.waypoints]
             self.waypoint_tree = KDTree(self.waypoints_2d)
 
+        #if len(msg.waypoints) > 0:
+        #    rospy.loginfo("WaypointUpdater waypoints_cb: %lf, %lf, %lf", msg.waypoints[0].pose.pose.position.x, msg.waypoints[0].pose.pose.position.y, msg.waypoints[0].pose.pose.position.z)
+        #else:
+        #    rospy.loginfo("WaypointUpdater waypoints_cb: None")
+
     def traffic_cb(self, msg):
-        # TODO: Callback for /traffic_waypoint message. Implement
-        pass
+        self.stopline_wp_idx = msg.data
+        #rospy.loginfo("WaypointUpdater traffic_cb: %d", self.stopline_wp_idx)
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
