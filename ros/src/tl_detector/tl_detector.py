@@ -104,7 +104,7 @@ class TLDetector(object):
             light_wp = light_wp if state == TrafficLight.RED else -1
             self.last_wp = light_wp
             self.upcoming_red_light_pub.publish(Int32(light_wp))
-            rospy.loginfo("TLDetector red_light_pub: %d", light_wp)
+            rospy.loginfo("TLDetector red_light_pub: %d, %d", light_wp, self.state)
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
@@ -157,26 +157,26 @@ class TLDetector(object):
 
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
-        if(self.pose):
+        if self.pose and self.base_lane:
             car_position = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
 
-        #TODO find the closest visible traffic light (if one exists)
-        diff = len(self.base_lane.waypoints)
-        for i, light in enumerate(self.lights):
-            # Get stop line waypoint index
-            line = stop_line_positions[i]
-            temp_wp_idx = self.get_closest_waypoint(line[0], line[1])
+            # find the closest visible traffic light (if one exists)
+            diff = len(self.base_lane.waypoints)
+            for i, light in enumerate(self.lights):
+                # Get stop line waypoint index
+                line = stop_line_positions[i]
+                temp_wp_idx = self.get_closest_waypoint(line[0], line[1])
 
-            # Find closest stop line waypoint index
-            d = temp_wp_idx - car_position
-            if d >= 0 and d < diff:
-                diff = d
-                closest_light = light
-                light_wp_idx = temp_wp_idx
+                # Find closest stop line waypoint index
+                d = temp_wp_idx - car_position
+                if d >= 0 and d < diff:
+                    diff = d
+                    closest_light = light
+                    light_wp_idx = temp_wp_idx
 
-        if closest_light:
-            state = self.get_light_state(light)
-            return light_wp_idx, state
+            if closest_light:
+                state = self.get_light_state(light)
+                return light_wp_idx, state
 
         self.base_lane = None
         return -1, TrafficLight.UNKNOWN
