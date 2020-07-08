@@ -35,7 +35,7 @@ TYPE = {
     'image':Image
 }
 
-NUM_IMAGES_TO_SKIP = 4
+NUM_IMAGES_TO_SKIP = 10
 
 class Bridge(object):
     def __init__(self, conf, server):
