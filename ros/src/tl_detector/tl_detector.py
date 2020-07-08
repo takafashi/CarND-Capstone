@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import Int32
+from std_msgs.msg import Int32, Bool
 from geometry_msgs.msg import PoseStamped, Pose
 from styx_msgs.msg import TrafficLightArray, TrafficLight
 from styx_msgs.msg import Lane
@@ -18,6 +18,9 @@ class TLDetector(object):
     def __init__(self):
         rospy.init_node('tl_detector')
 
+        self.debug_idx = 0
+        self.debug_camera_out = False
+
         self.pose = None
         self.base_lane = None
         self.waypoints_2d = None
@@ -28,6 +31,7 @@ class TLDetector(object):
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        sub3 = rospy.Subscriber('/debug_camera_out', Bool, self.debug_camera_out_cb)
 
         '''
         /vehicle/traffic_lights provides you with the location of the traffic light in 3D map space and
@@ -104,11 +108,14 @@ class TLDetector(object):
             light_wp = light_wp if state == TrafficLight.RED else -1
             self.last_wp = light_wp
             self.upcoming_red_light_pub.publish(Int32(light_wp))
-            rospy.loginfo("TLDetector red_light_pub: %d, %d", light_wp, self.state)
+            #rospy.loginfo("TLDetector red_light_pub: %d, %d", light_wp, self.state)
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
         #rospy.loginfo("TLDetector image_cb: %d, %d", light_wp, state)
+
+    def debug_camera_out_cb(self, msg):
+        self.debug_camera_out = msg.data
 
     def get_closest_waypoint(self, x, y):
         """Identifies the closest path waypoint to the given position
@@ -138,6 +145,10 @@ class TLDetector(object):
             return False
 
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        if self.debug_camera_out:
+            if self.debug_idx % 10 == 0:
+                cv2.imwrite("test" + str(self.debug_idx // 10) + ".png", cv_image)
+            self.debug_idx += 1
 
         #Get classification
         #return self.light_classifier.get_classification(cv_image)
