@@ -1,8 +1,13 @@
+### Test data
+*.png
+
+### Python
 *.py[cod]
 
+### ROS
 build
 devel
-
 profile.tmp
 
+### For mac
 .DS_Store

@@ -97,16 +97,16 @@ class DBWNode(object):
 
     def dbw_enabled_cb(self, msg):
         self.dbw_enabled = msg
-        rospy.logwarn("dbw_enabled_cb: %s", self.dbw_enabled)
+        #rospy.loginfo("DBWNode dbw_enabled_cb: %s", self.dbw_enabled)
 
     def twist_cb(self, msg):
         self.linear_vel = msg.twist.linear.x
         self.angular_vel = msg.twist.angular.z
-        #rospy.logwarn("twist_cb: %lf, %lf", self.linear_vel, self.angular_vel)
+        #rospy.loginfo("DBWNode twist_cb: %lf, %lf", self.linear_vel, self.angular_vel)
 
     def velocity_cb(self, msg):
         self.current_vel = msg.twist.linear.x
-        #rospy.logwarn("velocity_cb: %lf", self.current_vel)
+        #rospy.loginfo("DBWNode velocity_cb: %lf", self.current_vel)
 
     def publish(self, throttle, brake, steer):
         tcmd = ThrottleCmd()
@@ -125,6 +125,7 @@ class DBWNode(object):
         bcmd.pedal_cmd_type = BrakeCmd.CMD_TORQUE
         bcmd.pedal_cmd = brake
         self.brake_pub.publish(bcmd)
+        #rospy.loginfo("DBWNode pub: %lf, %lf, %lf", throttle, steer, brake)
 
 
 if __name__ == '__main__':
