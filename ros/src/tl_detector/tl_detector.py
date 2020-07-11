@@ -144,14 +144,15 @@ class TLDetector(object):
             self.prev_light_loc = None
             return False
 
-        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "rgb8")
         if self.debug_camera_out:
             if self.debug_idx % 10 == 0:
                 cv2.imwrite("test" + str(self.debug_idx // 10) + ".png", cv_image)
             self.debug_idx += 1
 
         #Get classification
-        #return self.light_classifier.get_classification(cv_image)
+        state_cl = self.light_classifier.get_classification(cv_image)
+
         return light.state
 
     def process_traffic_lights(self):
