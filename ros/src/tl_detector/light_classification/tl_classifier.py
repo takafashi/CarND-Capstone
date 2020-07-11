@@ -5,7 +5,7 @@ import tensorflow as tf
 import cv2
 
 
-SSD_GRAPH_FILE = 'ssd_mobilenet_v1_coco_2018_01_28/frozen_inference_graph.pb'
+SSD_GRAPH_FILE = 'light_classification/ssd_mobilenet_v1_coco_2018_01_28/frozen_inference_graph.pb'
 
 class TLClassifier(object):
     def __init__(self):
@@ -78,7 +78,7 @@ class TLClassifier(object):
 
         # Actual detection.
         (boxes, scores, classes) = self.sess.run([self.detection_boxes, self.detection_scores, self.detection_classes],
-                                            feed_dict={image_tensor: image_np})
+                                            feed_dict={self.image_tensor: image_np})
 
         # Remove unnecessary dimensions
         boxes = np.squeeze(boxes)
