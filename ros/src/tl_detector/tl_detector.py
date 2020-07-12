@@ -85,7 +85,7 @@ class TLDetector(object):
         self.debug_camera_out = msg.data
 
 
-    def get_closest_waypoint(self, x, y):
+    def get_closest_waypoint_idx(self, x, y):
         closest_idx = self.waypoint_tree.query([x, y], 1)[1]
         return closest_idx
 
@@ -125,14 +125,14 @@ class TLDetector(object):
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
         if self.pose and self.base_lane:
-            carpos_wp_idx = self.get_closest_waypoint(self.pose.pose.position.x, self.pose.pose.position.y)
+            carpos_wp_idx = self.get_closest_waypoint_idx(self.pose.pose.position.x, self.pose.pose.position.y)
 
             # find the closest visible traffic light (if one exists)
             best_diff = len(self.base_lane.waypoints)
             for i, light in enumerate(self.lights):
                 # Get stop line waypoint index
                 line = stop_line_positions[i]
-                temp_wp_idx = self.get_closest_waypoint(line[0], line[1])
+                temp_wp_idx = self.get_closest_waypoint_idx(line[0], line[1])
 
                 # Find closest stop line waypoint index
                 temp_wp_diff = temp_wp_idx - carpos_wp_idx
@@ -146,7 +146,6 @@ class TLDetector(object):
                 state = self.get_light_state()
                 return light_wp_idx, state
 
-        self.base_lane = None
         return -1, TrafficLight.UNKNOWN
 
 if __name__ == '__main__':
