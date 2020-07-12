@@ -1,30 +1,26 @@
-import rospy
 from styx_msgs.msg import TrafficLight
 import numpy as np
 import tensorflow as tf
-import cv2
 
 
 SSD_GRAPH_FILE = 'light_classification/frozen_model/frozen_inference_graph.pb'
+CONFIDENCE_CUTOFF = 0.8
 
 class TLClassifier(object):
     def __init__(self):
         self.graph = self.load_graph(SSD_GRAPH_FILE)
 
         # The input placeholder for the image.
-        # `get_tensor_by_name` returns the Tensor with the associated name in the Graph.
         self.image_tensor = self.graph.get_tensor_by_name('image_tensor:0')
-
         # Each box represents a part of the image where a particular object was detected.
         self.detection_boxes = self.graph.get_tensor_by_name('detection_boxes:0')
-
-        # Each score represent how level of confidence for each of the objects.
         # Score is shown on the result image, together with the class label.
         self.detection_scores = self.graph.get_tensor_by_name('detection_scores:0')
-
         # The classification of the object (integer id).
         self.detection_classes = self.graph.get_tensor_by_name('detection_classes:0')
+
         self.sess = tf.Session(graph=self.graph)
+
 
     def filter_boxes(self, min_score, boxes, scores, classes):
         """Return boxes with a confidence >= `min_score`"""
@@ -38,20 +34,6 @@ class TLClassifier(object):
         filtered_scores = scores[idxs, ...]
         filtered_classes = classes[idxs, ...]
         return filtered_boxes, filtered_scores, filtered_classes
-
-    def to_image_coords(self, boxes, height, width):
-        """
-        The original box coordinate output is normalized, i.e [0, 1].
-        This converts it back to the original coordinate based on the image
-        size.
-        """
-        box_coords = np.zeros_like(boxes)
-        box_coords[:, 0] = boxes[:, 0] * height
-        box_coords[:, 1] = boxes[:, 1] * width
-        box_coords[:, 2] = boxes[:, 2] * height
-        box_coords[:, 3] = boxes[:, 3] * width
-
-        return box_coords
 
     def load_graph(self, graph_file):
         """Loads a frozen inference graph"""
@@ -87,33 +69,19 @@ class TLClassifier(object):
 
         score_max = np.max(scores)
 
-        confidence_cutoff = 0.8
-        # Filter boxes with a confidence score less than `confidence_cutoff`
-        boxes, scores, classes = self.filter_boxes(confidence_cutoff, boxes, scores, classes)
-
-        ## The current box coordinates are normalized to a range between 0 and 1.
-        ## This converts the coordinates actual location on the image.
-        #width, height = image.size
-        #box_coords = self.to_image_coords(boxes, height, width)
-
-        # Each class with be represented by a differently colored box
-        #draw_boxes(image, box_coords, classes)
+        # Filter boxes with a confidence score less than `CONFIDENCE_CUTOFF`
+        boxes, scores, classes = self.filter_boxes(CONFIDENCE_CUTOFF, boxes, scores, classes)
 
         state = TrafficLight.UNKNOWN
-
-        if score_max > confidence_cutoff:
+        if score_max > CONFIDENCE_CUTOFF:
             class_idx = classes[np.argmax(scores)]
             if class_idx == 1:
                 state = TrafficLight.GREEN
-                #rospy.loginfo("TLClassifier RED")
             elif class_idx == 2:
                 state = TrafficLight.YELLOW
-                #rospy.loginfo("TLClassifier YELLOW")
-            else:
+            elif class_idx == 3:
                 state = TrafficLight.RED
-                #rospy.loginfo("TLClassifier GREEN")
-
-        #image.save('output_model/out.jpg', quality=100)
-        #time.sleep(1.8)
+            else:
+                state = TrafficLight.UNKNOWN
 
         return state
