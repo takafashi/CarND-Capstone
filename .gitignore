@@ -1,5 +1,8 @@
 ### Test data
 *.png
+*.json
+ssd_mobilenet_*
+*.vott
 
 ### Python
 *.py[cod]

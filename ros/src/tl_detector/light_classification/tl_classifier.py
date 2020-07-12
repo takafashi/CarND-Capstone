@@ -5,7 +5,7 @@ import tensorflow as tf
 import cv2
 
 
-SSD_GRAPH_FILE = 'light_classification/ssd_mobilenet_v1_coco_2018_01_28/frozen_inference_graph.pb'
+SSD_GRAPH_FILE = 'light_classification/frozen_model/frozen_inference_graph.pb'
 
 class TLClassifier(object):
     def __init__(self):
