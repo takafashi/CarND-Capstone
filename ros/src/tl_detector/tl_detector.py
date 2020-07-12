@@ -89,11 +89,8 @@ class TLDetector(object):
         closest_idx = self.waypoint_tree.query([x, y], 1)[1]
         return closest_idx
 
-    def get_light_state(self, light):
+    def get_light_state(self):
         """Determines the current color of the traffic light
-
-        Args:
-            light (TrafficLight): light to classify
 
         Returns:
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
