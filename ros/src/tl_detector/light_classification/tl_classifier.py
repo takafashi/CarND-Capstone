@@ -99,36 +99,21 @@ class TLClassifier(object):
         # Each class with be represented by a differently colored box
         #draw_boxes(image, box_coords, classes)
 
-        print("classes", classes, "scores", scores, "scores max", score_max)
-
         state = TrafficLight.UNKNOWN
 
         if score_max > confidence_cutoff:
             class_idx = classes[np.argmax(scores)]
-            if class_idx == 10:
-                amax = np.amax(image, axis=1)
-                max_ch = np.argmax(amax)
-                if max_ch == 0:
-                    state = TrafficLight.RED
-                elif max_ch == 1:
-                    state = TrafficLight.GREEN
-                else:
-                    state = TrafficLight.YELLOW
-
-            #if class_idx == 1:
-            #    state = TrafficLight.GREEN
-            #elif class_idx == 2:
-            #    state = TrafficLight.YELLOW
-            #else:
-            #    state = TrafficLight.RED
+            if class_idx == 1:
+                state = TrafficLight.GREEN
+                #rospy.loginfo("TLClassifier RED")
+            elif class_idx == 2:
+                state = TrafficLight.YELLOW
+                #rospy.loginfo("TLClassifier YELLOW")
+            else:
+                state = TrafficLight.RED
+                #rospy.loginfo("TLClassifier GREEN")
 
         #image.save('output_model/out.jpg', quality=100)
         #time.sleep(1.8)
-        if state == TrafficLight.RED:
-            rospy.loginfo("TLClassifier RED")
-        elif state == TrafficLight.YELLOW:
-            rospy.loginfo("TLClassifier YELLOW")
-        else:
-            rospy.loginfo("TLClassifier GREEN")
 
         return state
