@@ -91,10 +91,10 @@ class TLClassifier(object):
         # Filter boxes with a confidence score less than `confidence_cutoff`
         boxes, scores, classes = self.filter_boxes(confidence_cutoff, boxes, scores, classes)
 
-        # The current box coordinates are normalized to a range between 0 and 1.
-        # This converts the coordinates actual location on the image.
-        width, height = image.size
-        box_coords = self.to_image_coords(boxes, height, width)
+        ## The current box coordinates are normalized to a range between 0 and 1.
+        ## This converts the coordinates actual location on the image.
+        #width, height = image.size
+        #box_coords = self.to_image_coords(boxes, height, width)
 
         # Each class with be represented by a differently colored box
         #draw_boxes(image, box_coords, classes)
